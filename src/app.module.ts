@@ -6,6 +6,8 @@ import { MailModule } from './mail/mail.module';
 import { MigrationModule } from './migration/migration.module';
 import { SetModule } from './set/set.module';
 import { UserModule } from './user/user.module';
+import { ReportModule } from './report/report.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
     imports: [
@@ -26,7 +28,9 @@ import { UserModule } from './user/user.module';
         MailModule,
         AuthModule,
         UserModule,
-        SetModule
+        SetModule,
+        ReportModule,
+        ServiceModule
     ],
     controllers: [],
     providers: []
