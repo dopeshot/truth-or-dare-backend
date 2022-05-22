@@ -1,0 +1,15 @@
+@adress = http://localhost:3001/api/auth
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vcm1hbCBVc2VyIiwic3ViIjoiNjFlODRlMzk2ZDhiYmZkOGM0YzdlMjRlIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2NDI2MTQ5MDUsImV4cCI6MTY0MjY1MDkwNX0.EovT_k2Hm0Z-6upgMsVgA0xFP2Uzl5FAkVcJGY-Hho4
+
+
+
+### Get All 
+GET {{adress}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+
+### Create new report
+
+

@@ -13,7 +13,7 @@ export class Report {
     @Prop({ required: false, type: TaskSchema })
     tasks: Task;
 
-    @Prop({ default: ReportStatus.CHECKED })
+    @Prop({ default: ReportStatus.RECEIVED })
     status: ReportStatus | ReportStatus.RECEIVED;
 
     @Prop({ type: SchemaTypes.ObjectId, ref: User.name, required: false })
@@ -21,6 +21,12 @@ export class Report {
 
     @Prop({ required: false })
     description: string;
+
+    @Prop({ type: SchemaTypes.ObjectId, ref: User.name, required: false })
+    reviewedBy: ObjectId;
+
+    @Prop({ required: false })
+    reviewerNote: string;
 }
 
 export type ReportDocument = Report & Document;

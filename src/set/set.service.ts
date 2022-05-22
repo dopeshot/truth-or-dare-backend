@@ -133,9 +133,13 @@ export class SetService {
         )
             throw new NotFoundException();
 
-        // Remove tasks from array that are not active
-        set.tasks = set.tasks.filter((task) => task.status === Status.ACTIVE);
-
+        // Admins can see unfiltered sets
+        if (user.role !== Role.ADMIN) {
+            // Remove tasks from array that are not active
+            set.tasks = set.tasks.filter(
+                (task) => task.status === Status.ACTIVE
+            );
+        }
         return set;
     }
 
@@ -161,6 +165,22 @@ export class SetService {
         if (!set) throw new NotFoundException();
 
         return set;
+    }
+
+    // Update Set Status - only used by report
+    async updateSetStatus(setId: ObjectId, newStatus: Status): Promise<void> {
+        const set: SetDocument = await this.setModel.findOneAndUpdate(
+            {
+                _id: setId
+            },
+            {
+                status: newStatus
+            }
+        );
+
+        if (!set) {
+            throw new NotFoundException();
+        }
     }
 
     async updateSetPlayed(id: ObjectId): Promise<SetDocument> {
@@ -278,6 +298,27 @@ export class SetService {
         const updatedResult: SetDocument = await this.updateCounts(setId);
 
         return updatedResult;
+    }
+
+    // Update Task Status - only used by report feature
+    async updateTaskStatus(
+        setId: ObjectId,
+        taskId: ObjectId,
+        newStatus: Status
+    ): Promise<void> {
+        const set: SetDocument = await this.setModel.findOneAndUpdate(
+            {
+                _id: setId,
+                'tasks._id': taskId
+            },
+            {
+                'tasks.$.status': newStatus
+            }
+        );
+
+        if (!set) {
+            throw new NotFoundException();
+        }
     }
 
     async removeTask(
