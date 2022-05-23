@@ -1,5 +1,5 @@
 export enum ReportStatus {
-    RECEIVED = 'received',
+    NEW = 'new',
     APPROVED = 'approved',
     DECLINED = 'declined'
 }

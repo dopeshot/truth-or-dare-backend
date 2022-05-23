@@ -5,6 +5,7 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Request,
     UseGuards
 } from '@nestjs/common';
@@ -20,15 +21,19 @@ import { UpdateReportDto } from './dtos/report-update.dto';
 import { ReportDocument } from './entities/report.entity';
 import { ReportService } from './report.service';
 
-@Controller('report')
+@Controller('reports')
 export class ReportController {
     constructor(private readonly reportService: ReportService) {}
 
     @Get('')
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
-    async getAllReports(): Promise<ReportDocument[]> {
-        return await this.reportService.getAllReports();
+    async getAllReports(
+        @Query('includeStatus') includedStatus: string
+    ): Promise<ReportDocument[]> {
+        return await this.reportService.getAllReports(
+            includedStatus?.split(',')
+        );
     }
 
     @Post('')

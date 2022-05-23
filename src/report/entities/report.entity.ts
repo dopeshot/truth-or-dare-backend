@@ -1,23 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId, SchemaTypes } from 'mongoose';
-import { Set, SetSchema } from '../../set/entities/set.entity';
-import { Task, TaskSchema } from '../../set/entities/task.entity';
+import { Set } from '../../set/entities/set.entity';
+import { Task } from '../../set/entities/task.entity';
 import { User } from '../../user/entities/user.entity';
 import { ReportStatus } from '../enums/report-status.enum';
 
 @Schema({ timestamps: true, _id: true })
 export class Report {
-    @Prop({ required: true, type: SetSchema })
-    set: Set;
+    @Prop({ type: SchemaTypes.ObjectId, ref: Set.name, required: true })
+    setId: Set;
 
-    @Prop({ required: false, type: TaskSchema })
-    tasks: Task;
+    @Prop({ type: SchemaTypes.ObjectId, ref: Task.name, required: true })
+    taskId: Task;
 
-    @Prop({ default: ReportStatus.RECEIVED })
-    status: ReportStatus | ReportStatus.RECEIVED;
+    @Prop({ default: ReportStatus.NEW })
+    status: ReportStatus | ReportStatus.NEW;
 
     @Prop({ type: SchemaTypes.ObjectId, ref: User.name, required: false })
-    createdBy: ObjectId;
+    createdBy: User;
 
     @Prop({ required: false })
     description: string;
@@ -31,4 +31,4 @@ export class Report {
 
 export type ReportDocument = Report & Document;
 export type ReportDocumentWithUser = ReportDocument & { createdBy?: User };
-export const ReportSchema = SchemaFactory.createForClass(Set);
+export const ReportSchema = SchemaFactory.createForClass(Report);

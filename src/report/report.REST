@@ -1,5 +1,5 @@
-@adress = http://localhost:3001/api/auth
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vcm1hbCBVc2VyIiwic3ViIjoiNjFlODRlMzk2ZDhiYmZkOGM0YzdlMjRlIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2NDI2MTQ5MDUsImV4cCI6MTY0MjY1MDkwNX0.EovT_k2Hm0Z-6upgMsVgA0xFP2Uzl5FAkVcJGY-Hho4
+@adress = http://localhost:3001/api/reports
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vcm1hbCBVc2VyIiwic3ViIjoiNjI4YmRkMGI3YWYwNjRiNGMzYmQ3MTVlIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2NTMzMzMyNjMsImV4cCI6MTY1MzM2OTI2M30.ifBZ9YzFUk4L62unUrMxPJeEFRRhAAWbFc2ZZZxoyAw
 
 
 
@@ -8,8 +8,20 @@ GET {{adress}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
+### Get All and approved
+GET {{adress}}?includeStatus=approved,rejected
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
 
 
 ### Create new report
+POST {{adress}}
+Content-Type:  application/json
 
+{
+    "setId": "628bdd977af064b4c3bd7338",
+    "taskId": "628bdd977af064b4c3bd733c",
+    "description": "This is a test report"
+}
 

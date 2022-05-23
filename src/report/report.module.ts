@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SetService } from '../set/set.service';
+import { SetModule } from '../set/set.module';
 import { Report, ReportSchema } from './entities/report.entity';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
@@ -12,7 +12,7 @@ import { ReportService } from './report.service';
         MongooseModule.forFeature([
             { name: Report.name, schema: ReportSchema }
         ]),
-        SetService
+        SetModule
     ]
 })
 export class ReportModule {}

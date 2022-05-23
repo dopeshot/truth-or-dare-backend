@@ -1,6 +1,7 @@
 import {
     Injectable,
     InternalServerErrorException,
+    Logger,
     NotFoundException
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,22 +12,34 @@ import { Status } from '../shared/enums/status.enum';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/report-update.dto';
 import { Report, ReportDocument } from './entities/report.entity';
+import { ReportStatus } from './enums/report-status.enum';
 
 @Injectable()
 export class ReportService {
+    private readonly logger = new Logger(ReportService.name);
     constructor(
         @InjectModel(Report.name) private reportModel: Model<ReportDocument>,
         private readonly setService: SetService
     ) {}
 
-    async getAllReports(): Promise<ReportDocument[]> {
-        return await this.reportModel.find().lean();
+    async getAllReports(includedStatus: string[]): Promise<ReportDocument[]> {
+        this.logger.debug('Fetching reports');
+        if (!includedStatus) {
+            includedStatus = [];
+        }
+        includedStatus.push(ReportStatus.NEW);
+        return await this.reportModel
+            .find({
+                status: { $in: includedStatus }
+            })
+            .lean();
     }
 
     async initiateReportFlow(
         createReportDto: CreateReportDto,
         user: JwtUserDto | null
     ) {
+        this.logger.debug('Starting report flow');
         // Report is for a task within task
         if (createReportDto.taskId) {
             this.setService.updateTaskStatus(
@@ -50,6 +63,7 @@ export class ReportService {
         createReportDto: CreateReportDto,
         user: JwtUserDto | null
     ): Promise<void> {
+        this.logger.debug('Creating report');
         try {
             await this.reportModel.create({
                 ...createReportDto,
@@ -66,6 +80,7 @@ export class ReportService {
         updateData: UpdateReportDto,
         user: JwtUserDto
     ): Promise<ReportDocument> {
+        this.logger.debug('Updating report');
         const report = await this.reportModel.findOneAndUpdate(
             {
                 _id: reportId
