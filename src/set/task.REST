@@ -1,7 +1,12 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vcm1hbCBVc2VyIiwic3ViIjoiNjFlODRlMzk2ZDhiYmZkOGM0YzdlMjRlIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2NDI2MTQ5MDUsImV4cCI6MTY0MjY1MDkwNX0.EovT_k2Hm0Z-6upgMsVgA0xFP2Uzl5FAkVcJGY-Hho4
-@set = 61e84ebf1fb85c7f69808259
-@task = 618fb74b0fcab4672f471341
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vcm1hbCBVc2VyIiwic3ViIjoiNjI4ZWE5YzVmMmZjNjQyZjY4NDY2M2RhIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2NTM1MTY3NDIsImV4cCI6MTY1MzU1Mjc0Mn0._fSLTkMh4jqwrh9H2UCRXhtf8e_XQnvS1Ofta_og978
+@set = 628eaa36f2fc642f684665b3
+@task = 628eaa36f2fc642f684665b7
 @adress = http://localhost:3001/api/sets/
+
+###Get Task (admins only)
+GET {{adress}}{{set}}/task/{{task}}
+Authorization: Bearer {{token}}
+
 ###Create Task
 POST {{adress}}{{set}}/task
 Content-Type: application/json

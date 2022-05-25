@@ -3,15 +3,19 @@ import { Document, ObjectId, SchemaTypes } from 'mongoose';
 import { Set } from '../../set/entities/set.entity';
 import { Task } from '../../set/entities/task.entity';
 import { User } from '../../user/entities/user.entity';
+import { ReportKind } from '../enums/report-kind.enum';
 import { ReportStatus } from '../enums/report-status.enum';
 
 @Schema({ timestamps: true, _id: true })
 export class Report {
     @Prop({ type: SchemaTypes.ObjectId, ref: Set.name, required: true })
-    setId: Set;
+    set: Set;
+
+    @Prop({required: true})
+    kind: ReportKind
 
     @Prop({ type: SchemaTypes.ObjectId, ref: Task.name, required: true })
-    taskId: Task;
+    task: Task;
 
     @Prop({ default: ReportStatus.NEW })
     status: ReportStatus | ReportStatus.NEW;

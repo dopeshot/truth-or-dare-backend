@@ -7,11 +7,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { JwtUserDto } from '../auth/dto/jwt.dto';
+import { Set } from '../set/entities/set.entity';
 import { SetService } from '../set/set.service';
 import { Status } from '../shared/enums/status.enum';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/report-update.dto';
 import { Report, ReportDocument } from './entities/report.entity';
+import { ReportKind } from './enums/report-kind.enum';
 import { ReportStatus } from './enums/report-status.enum';
 
 @Injectable()
@@ -32,6 +34,7 @@ export class ReportService {
             .find({
                 status: { $in: includedStatus }
             })
+            .populate<{set: Set}>('set', '-tasks')
             .lean();
     }
 
@@ -41,20 +44,22 @@ export class ReportService {
     ) {
         this.logger.debug('Starting report flow');
         // Report is for a task within task
-        if (createReportDto.taskId) {
+        if (createReportDto.task) {
             this.setService.updateTaskStatus(
-                createReportDto.setId,
-                createReportDto.taskId,
+                createReportDto.set,
+                createReportDto.task,
                 Status.SUSPENDED
             );
         }
         // Report is for a set
         else {
             this.setService.updateSetStatus(
-                createReportDto.setId,
+                createReportDto.set,
                 Status.SUSPENDED
             );
         }
+
+        this.setService.getOneTask(createReportDto.set, createReportDto.task)
 
         await this.createReport(createReportDto, user);
     }
@@ -67,9 +72,11 @@ export class ReportService {
         try {
             await this.reportModel.create({
                 ...createReportDto,
-                createdBy: user?.userId
+                createdBy: user?.userId,
+                kind: (!createReportDto.task)? ReportKind.TASK_REPORT: ReportKind.SET_REPORT
             });
         } catch (error) {
+            console.log(error)
             /* istanbul ignore next */ // Unable to test Internal server error here
             throw new InternalServerErrorException('Could not create Report');
         }

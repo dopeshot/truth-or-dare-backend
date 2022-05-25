@@ -7,9 +7,9 @@ export class CreateReportDto {
     description: string;
 
     @IsMongoId()
-    setId: ObjectId;
+    set: ObjectId;
 
     @IsMongoId()
     @IsOptional()
-    taskId: ObjectId;
+    task: ObjectId;
 }

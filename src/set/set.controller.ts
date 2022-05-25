@@ -18,10 +18,13 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtUserDto } from 'src/auth/dto/jwt.dto';
+import { Roles } from '../auth/roles/roles.decorator';
+import { RolesGuard } from '../auth/roles/roles.guard';
 import { JwtAuthGuard } from '../auth/strategies/jwt/jwt-auth.guard';
 import { OptionalJWTGuard } from '../auth/strategies/optionalJWT/optionalJWT.guard';
 import { LanguageDto } from '../shared/dto/lanugage.dto';
 import { MongoIdDto } from '../shared/dto/mongoId.dto';
+import { Role } from '../user/enums/role.enum';
 import { CreateFullSetDto } from './dto/create-full-set.dto';
 import { CreateSetDto } from './dto/create-set.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -172,4 +175,14 @@ export class SetController {
             await this.setService.createDataFromFullSet(user, fullSet)
         );
     }
+
+    // Admin endpoints
+    
+    @Get(':setId/task/:taskId')
+    @Roles(Role.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+     async getOneTask(
+        @Param() { setId, taskId }: SetTaskMongoIdDto){
+            return new TaskResponse(await this.setService.getOneTask(setId, taskId))
+        }
 }

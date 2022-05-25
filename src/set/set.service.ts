@@ -234,6 +234,15 @@ export class SetService {
 
     // Tasks
 
+    async getOneTask(setId: ObjectId, taskId: ObjectId): Promise<TaskDocument>{
+        const task = ((await this.setModel.findOne({_id: setId})).tasks as TaskDocument[])
+        .find(task => task._id.toString() === taskId)
+        if (!task){
+            throw new NotFoundException()
+        }   
+        return task
+    }
+
     async createTask(
         setId: ObjectId,
         createTaskDto: CreateTaskDto,
