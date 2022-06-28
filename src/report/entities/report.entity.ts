@@ -11,8 +11,8 @@ export class Report {
     @Prop({ type: SchemaTypes.ObjectId, ref: Set.name, required: true })
     set: Set;
 
-    @Prop({required: true})
-    kind: ReportKind
+    @Prop({ required: true })
+    kind: ReportKind;
 
     @Prop({ type: SchemaTypes.ObjectId, ref: Task.name, required: true })
     task: Task;

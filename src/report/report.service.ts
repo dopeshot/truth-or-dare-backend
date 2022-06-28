@@ -34,7 +34,7 @@ export class ReportService {
             .find({
                 status: { $in: includedStatus }
             })
-            .populate<{set: Set}>('set', '-tasks')
+            .populate<{ set: Set }>('set', '-tasks')
             .lean();
     }
 
@@ -42,10 +42,11 @@ export class ReportService {
         createReportDto: CreateReportDto,
         user: JwtUserDto | null
     ) {
+        // Status Updates for Set and Task will fail if id is invalid => no check necessary
         this.logger.debug('Starting report flow');
         // Report is for a task within task
         if (createReportDto.task) {
-            this.setService.updateTaskStatus(
+            this.setService.updateTaskStatusOrFail(
                 createReportDto.set,
                 createReportDto.task,
                 Status.SUSPENDED
@@ -53,13 +54,11 @@ export class ReportService {
         }
         // Report is for a set
         else {
-            this.setService.updateSetStatus(
+            this.setService.updateSetStatusOrFail(
                 createReportDto.set,
                 Status.SUSPENDED
             );
         }
-
-        this.setService.getOneTask(createReportDto.set, createReportDto.task)
 
         await this.createReport(createReportDto, user);
     }
@@ -73,10 +72,12 @@ export class ReportService {
             await this.reportModel.create({
                 ...createReportDto,
                 createdBy: user?.userId,
-                kind: (!createReportDto.task)? ReportKind.TASK_REPORT: ReportKind.SET_REPORT
+                kind: !createReportDto.task
+                    ? ReportKind.TASK_REPORT
+                    : ReportKind.SET_REPORT
             });
         } catch (error) {
-            console.log(error)
+            console.log(error);
             /* istanbul ignore next */ // Unable to test Internal server error here
             throw new InternalServerErrorException('Could not create Report');
         }
@@ -84,8 +85,7 @@ export class ReportService {
 
     async updateReport(
         reportId: ObjectId,
-        updateData: UpdateReportDto,
-        user: JwtUserDto
+        updateData: UpdateReportDto
     ): Promise<ReportDocument> {
         this.logger.debug('Updating report');
         const report = await this.reportModel.findOneAndUpdate(

@@ -132,7 +132,7 @@ describe('Sets (e2e)', () => {
             expect(res.body.language).toEqual(mockSet.language);
             expect(res.body.category).toEqual(mockSet.category);
             expect(res.body.visibility).toEqual(mockSet.visibility);
-            expect(res.body.tasks.length).toBe(3);
+            expect(res.body.tasks.length).toBe(mockSet.tasks.length);
 
             // Testing class SetWithTasksResponse
             const set = new SetWithTasksResponse(res.body);

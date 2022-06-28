@@ -29,7 +29,7 @@ export class ReportController {
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
     async getAllReports(
-        @Query('includeStatus') includedStatus: string
+        @Query('includeStatus') includedStatus?: string
     ): Promise<ReportDocument[]> {
         return await this.reportService.getAllReports(
             includedStatus?.split(',')
@@ -53,10 +53,6 @@ export class ReportController {
         @Body() updateReportDto: UpdateReportDto,
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ): Promise<ReportDocument> {
-        return await this.reportService.updateReport(
-            reportId,
-            updateReportDto,
-            user
-        );
+        return await this.reportService.updateReport(reportId, updateReportDto);
     }
 }

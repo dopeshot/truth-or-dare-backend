@@ -102,7 +102,7 @@ export class SetService {
         return sets;
     }
 
-    async getOneSet(
+    async getOneSetForUserOrFail(
         id: ObjectId,
         user: JwtUserDto
     ): Promise<SetDocumentWithUser> {
@@ -111,39 +111,40 @@ export class SetService {
                 _id: id,
                 status: Status.ACTIVE
             })
-
             .populate<{ createdBy: User }>('createdBy')
             .lean();
 
-        // Only Admins and Owners can see the private sets
-        if (
-            // No Set at all
-            !set ||
-            // Set is private => check further
-            (set.visibility === Visibility.PRIVATE &&
-                // No Authentification
-                (!user ||
-                    // No Admin
-                    (user.role !== Role.ADMIN &&
-                        // No User in Database (deleted for example)
-                        (!set.createdBy ||
-                            // Not the correct user
-                            set.createdBy._id.toString() !==
-                                user.userId.toString()))))
-        )
+        if (!set) {
             throw new NotFoundException();
-
-        // Admins can see unfiltered sets
-        if (user.role !== Role.ADMIN) {
-            // Remove tasks from array that are not active
-            set.tasks = set.tasks.filter(
-                (task) => task.status === Status.ACTIVE
-            );
         }
+
+        if (user && user.role === Role.ADMIN) {
+            return set;
+        }
+
+        // Remove tasks from array that are not active
+        set.tasks = set.tasks.filter((task) => task.status === Status.ACTIVE);
+
+        // Public Sets are visible for all, Admins can see all
+        if (set.visibility === Visibility.PRIVATE) {
+            // No User => Cannot see private Set
+            if (!user) {
+                throw new NotFoundException();
+            }
+
+            // Was Set created by requesting user?
+            if (
+                !set.createdBy ||
+                set.createdBy._id.toString() !== user.userId.toString()
+            ) {
+                throw new NotFoundException();
+            }
+        }
+
         return set;
     }
 
-    async updateSetMetadata(
+    async updateSetMetadataOrFail(
         id: ObjectId,
         updateSetDto: UpdateSetDto,
         user: JwtUserDto
@@ -168,7 +169,10 @@ export class SetService {
     }
 
     // Update Set Status - only used by report
-    async updateSetStatus(setId: ObjectId, newStatus: Status): Promise<void> {
+    async updateSetStatusOrFail(
+        setId: ObjectId,
+        newStatus: Status
+    ): Promise<void> {
         const set: SetDocument = await this.setModel.findOneAndUpdate(
             {
                 _id: setId
@@ -183,7 +187,7 @@ export class SetService {
         }
     }
 
-    async updateSetPlayed(id: ObjectId): Promise<SetDocument> {
+    async updateSetPlayedOrFail(id: ObjectId): Promise<SetDocument> {
         const set: SetDocument = await this.setModel
             .findByIdAndUpdate(
                 id,
@@ -199,7 +203,7 @@ export class SetService {
         return set;
     }
 
-    async deleteSet(
+    async deleteSetOrFail(
         id: ObjectId,
         deleteType: DeleteType,
         user: JwtUserDto
@@ -234,13 +238,19 @@ export class SetService {
 
     // Tasks
 
-    async getOneTask(setId: ObjectId, taskId: ObjectId): Promise<TaskDocument>{
-        const task = ((await this.setModel.findOne({_id: setId})).tasks as TaskDocument[])
-        .find(task => task._id.toString() === taskId)
-        if (!task){
-            throw new NotFoundException()
-        }   
-        return task
+    async getOneTaskOrFail(
+        setId: ObjectId,
+        taskId: ObjectId
+    ): Promise<TaskDocument> {
+        const task = (
+            (await this.setModel.findOne({ _id: setId }))
+                .tasks as TaskDocument[]
+        ).find((task) => task._id.toString() === taskId);
+        if (!task) {
+            throw new NotFoundException();
+        }
+
+        return task;
     }
 
     async createTask(
@@ -276,7 +286,7 @@ export class SetService {
     }
 
     // The frontend should always send all 3 updatable properties
-    async updateTask(
+    async updateTaskOrFail(
         setId: ObjectId,
         taskId: ObjectId,
         updateTaskDto: UpdateTaskDto,
@@ -310,7 +320,7 @@ export class SetService {
     }
 
     // Update Task Status - only used by report feature
-    async updateTaskStatus(
+    async updateTaskStatusOrFail(
         setId: ObjectId,
         taskId: ObjectId,
         newStatus: Status
@@ -330,7 +340,7 @@ export class SetService {
         }
     }
 
-    async removeTask(
+    async removeTaskOrFail(
         setId: ObjectId,
         taskId: ObjectId,
         deleteType: DeleteType,
@@ -465,10 +475,9 @@ export class SetService {
         const { tasks, ...createSetDto } = sampleSets;
         // Exceptions are caught in the function calls
         const set = await this.createSet(createSetDto, user);
-        tasks.forEach(async (task) => {
+        for (const task of tasks) {
             await this.createTask(set._id, task, user);
-        });
-
-        return await this.getOneSet(set._id, user);
+        }
+        return await this.getOneSetForUserOrFail(set._id, user);
     }
 }

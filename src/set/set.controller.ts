@@ -89,7 +89,7 @@ export class SetController {
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ): Promise<SetWithTasksResponse> {
         return new SetWithTasksResponse(
-            await this.setService.getOneSet(id, user)
+            await this.setService.getOneSetForUserOrFail(id, user)
         );
     }
 
@@ -102,14 +102,20 @@ export class SetController {
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ): Promise<SetMetadataResponse> {
         return new SetMetadataResponse(
-            await this.setService.updateSetMetadata(id, updateSetDto, user)
+            await this.setService.updateSetMetadataOrFail(
+                id,
+                updateSetDto,
+                user
+            )
         );
     }
 
     @Patch(':id/played')
     @ApiOperation({ summary: 'Update Set by id' })
     async updatePlayed(@Param() { id }: MongoIdDto): Promise<UpdatedPlayed> {
-        return new UpdatedPlayed(await this.setService.updateSetPlayed(id));
+        return new UpdatedPlayed(
+            await this.setService.updateSetPlayedOrFail(id)
+        );
     }
 
     @Delete(':id')
@@ -121,7 +127,7 @@ export class SetController {
         @Query() { type }: DeleteTypeDto,
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ) {
-        return await this.setService.deleteSet(id, type, user);
+        return await this.setService.deleteSetOrFail(id, type, user);
     }
 
     // Tasks
@@ -148,7 +154,12 @@ export class SetController {
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ): Promise<UpdatedCounts> {
         return new UpdatedCounts(
-            await this.setService.updateTask(setId, taskId, updateTaskDto, user)
+            await this.setService.updateTaskOrFail(
+                setId,
+                taskId,
+                updateTaskDto,
+                user
+            )
         );
     }
 
@@ -161,7 +172,12 @@ export class SetController {
         @Query() { type }: DeleteTypeDto,
         @Request() { user }: ParameterDecorator & { user: JwtUserDto }
     ) {
-        return await this.setService.removeTask(setId, taskId, type, user);
+        return await this.setService.removeTaskOrFail(
+            setId,
+            taskId,
+            type,
+            user
+        );
     }
 
     @Post('createfullset')
@@ -177,12 +193,13 @@ export class SetController {
     }
 
     // Admin endpoints
-    
+
     @Get(':setId/task/:taskId')
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
-     async getOneTask(
-        @Param() { setId, taskId }: SetTaskMongoIdDto){
-            return new TaskResponse(await this.setService.getOneTask(setId, taskId))
-        }
+    async getOneTask(@Param() { setId, taskId }: SetTaskMongoIdDto) {
+        return new TaskResponse(
+            await this.setService.getOneTaskOrFail(setId, taskId)
+        );
+    }
 }
