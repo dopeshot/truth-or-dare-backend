@@ -10,6 +10,7 @@ import { JwtUserDto } from '../auth/dto/jwt.dto';
 import { Set } from '../set/entities/set.entity';
 import { SetService } from '../set/set.service';
 import { Status } from '../shared/enums/status.enum';
+import { User } from './../user/entities/user.entity';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/report-update.dto';
 import { Report, ReportDocument } from './entities/report.entity';
@@ -27,15 +28,29 @@ export class ReportService {
     async getAllReports(includedStatus: string[]): Promise<ReportDocument[]> {
         this.logger.debug('Fetching reports');
         if (!includedStatus) {
-            includedStatus = [];
+            includedStatus = Object.values(ReportStatus);
         }
-        includedStatus.push(ReportStatus.NEW);
         return await this.reportModel
             .find({
                 status: { $in: includedStatus }
             })
             .populate<{ set: Set }>('set', '-tasks')
             .lean();
+    }
+
+    async getOneReportById(id: ObjectId): Promise<ReportDocument> {
+        const report = await this.reportModel
+            .findById(id)
+            .populate<{ set: Set }>('set')
+            .populate<{ createdBy: User }>('createdBy')
+            .populate<{ reviewedBy: User }>('reviewedBy');
+        console.log(report);
+
+        if (!report) {
+            throw new NotFoundException();
+        }
+
+        return report;
     }
 
     async initiateReportFlow(

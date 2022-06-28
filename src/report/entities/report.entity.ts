@@ -14,7 +14,7 @@ export class Report {
     @Prop({ required: true })
     kind: ReportKind;
 
-    @Prop({ type: SchemaTypes.ObjectId, ref: Task.name, required: true })
+    @Prop({ type: SchemaTypes.ObjectId, ref: Task.name, required: false })
     task: Task;
 
     @Prop({ default: ReportStatus.NEW })

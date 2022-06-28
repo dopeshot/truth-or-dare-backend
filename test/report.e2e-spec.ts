@@ -6,6 +6,7 @@ import * as request from 'supertest';
 import { JwtAuthGuard } from '../src/auth/strategies/jwt/jwt-auth.guard';
 import { OptionalJWTGuard } from '../src/auth/strategies/optionalJWT/optionalJWT.guard';
 import { Report, ReportSchema } from '../src/report/entities/report.entity';
+import { ReportModule } from '../src/report/report.module';
 import { SetDocument } from '../src/set/entities/set.entity';
 import { SetModule } from '../src/set/set.module';
 import {
@@ -14,6 +15,7 @@ import {
     UserSchema
 } from '../src/user/entities/user.entity';
 import { ReportDocument } from './../src/report/entities/report.entity';
+import { ReportStatus } from './../src/report/enums/report-status.enum';
 import { FakeAuthGuardFactory } from './helpers/fake-auth-guard.factory';
 import {
     closeInMongodConnection,
@@ -41,6 +43,7 @@ describe('Reports (e2e)', () => {
             imports: [
                 rootMongooseTestModule(),
                 SetModule,
+                ReportModule,
                 // User collection only needed for populate functions, no actual code is tested in here
                 MongooseModule.forFeature([
                     { name: User.name, schema: UserSchema },
@@ -72,6 +75,7 @@ describe('Reports (e2e)', () => {
     });
 
     afterEach(async () => {
+        await reportModel.deleteMany();
         await setModel.deleteMany();
         await userModel.deleteMany();
         fakeAuthGuard.setUser(null);
@@ -95,6 +99,72 @@ describe('Reports (e2e)', () => {
             expect(res.body.length).toEqual(getMockReports().length);
         });
 
+        it('get only declined', async () => {
+            const res = await request(app.getHttpServer())
+                .get('/reports/?status=declined')
+                .set(
+                    'Authorization',
+                    `Bearer ${await getJWT(await getTestAdmin())}`
+                )
+                .expect(HttpStatus.OK);
+
+            expect(res.body.length).toEqual(
+                getMockReports().filter(
+                    (report) => report.status === ReportStatus.DECLINED
+                ).length
+            );
+        });
+
+        it('get only new', async () => {
+            const res = await request(app.getHttpServer())
+                .get('/reports/?status=new')
+                .set(
+                    'Authorization',
+                    `Bearer ${await getJWT(await getTestAdmin())}`
+                )
+                .expect(HttpStatus.OK);
+
+            expect(res.body.length).toEqual(
+                getMockReports().filter(
+                    (report) => report.status === ReportStatus.NEW
+                ).length
+            );
+        });
+
+        it('get only approved', async () => {
+            const res = await request(app.getHttpServer())
+                .get('/reports/?status=approved')
+                .set(
+                    'Authorization',
+                    `Bearer ${await getJWT(await getTestAdmin())}`
+                )
+                .expect(HttpStatus.OK);
+
+            expect(res.body.length).toEqual(
+                getMockReports().filter(
+                    (report) => report.status === ReportStatus.APPROVED
+                ).length
+            );
+        });
+
+        it('get only multiple status', async () => {
+            const res = await request(app.getHttpServer())
+                .get('/reports/?status=approved,new')
+                .set(
+                    'Authorization',
+                    `Bearer ${await getJWT(await getTestAdmin())}`
+                )
+                .expect(HttpStatus.OK);
+
+            expect(res.body.length).toEqual(
+                getMockReports().filter(
+                    (report) =>
+                        report.status === ReportStatus.DECLINED ||
+                        report.status === ReportStatus.NEW
+                ).length
+            );
+        });
+
         it('get as non admin', async () => {
             fakeAuthGuard.setUser(getMockAuthUser());
             const res = await request(app.getHttpServer())
@@ -104,8 +174,31 @@ describe('Reports (e2e)', () => {
                     `Bearer ${await getJWT(await getMockAuthUser())}`
                 )
                 .expect(HttpStatus.FORBIDDEN);
+        });
+    });
 
-            expect(res.body.length).toEqual(getMockReports().length);
+    describe('/reports/:id (GET)', () => {
+        it('get without specifying status', async () => {
+            const id = getMockReports()[0]._id;
+            const res = await request(app.getHttpServer())
+                .get(`/reports/${id}`)
+                .set(
+                    'Authorization',
+                    `Bearer ${await getJWT(await getTestAdmin())}`
+                )
+                .expect(HttpStatus.OK);
+            console.log(res.body);
+
+            // expect(res.body).toEqual(
+            //     new ReportResponse(
+            //         reportModel
+            //             .findById(id)
+            //             .populate('set')
+            //             .populate('createdBy')
+            //             .populate('reviewedBy')
+            //             .lean()
+            //     )
+            // );
         });
     });
 });

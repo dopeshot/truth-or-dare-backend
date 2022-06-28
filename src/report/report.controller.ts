@@ -1,5 +1,6 @@
 import {
     Body,
+    ClassSerializerInterceptor,
     Controller,
     Get,
     Param,
@@ -7,7 +8,9 @@ import {
     Post,
     Query,
     Request,
-    UseGuards
+    SerializeOptions,
+    UseGuards,
+    UseInterceptors
 } from '@nestjs/common';
 import { ObjectId } from 'mongoose';
 import { JwtUserDto } from '../auth/dto/jwt.dto';
@@ -20,8 +23,11 @@ import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/report-update.dto';
 import { ReportDocument } from './entities/report.entity';
 import { ReportService } from './report.service';
+import { ReportResponse } from './responses/report-response';
 
 @Controller('reports')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({ strategy: 'excludeAll' })
 export class ReportController {
     constructor(private readonly reportService: ReportService) {}
 
@@ -29,10 +35,21 @@ export class ReportController {
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
     async getAllReports(
-        @Query('includeStatus') includedStatus?: string
+        @Query('status') includedStatus?: string
     ): Promise<ReportDocument[]> {
         return await this.reportService.getAllReports(
             includedStatus?.split(',')
+        );
+    }
+
+    @Get(':reportId')
+    @Roles(Role.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    async getOneReport(
+        @Param('reportId') reportId: ObjectId
+    ): Promise<ReportResponse> {
+        return new ReportResponse(
+            await this.reportService.getOneReportById(reportId)
         );
     }
 
