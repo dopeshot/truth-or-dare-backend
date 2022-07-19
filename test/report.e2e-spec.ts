@@ -96,6 +96,7 @@ describe('Reports (e2e)', () => {
                 )
                 .expect(HttpStatus.OK);
 
+            console.log(res.body[0]);
             expect(res.body.length).toEqual(getMockReports().length);
         });
 

@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { JwtUserDto } from '../auth/dto/jwt.dto';
 import { Set } from '../set/entities/set.entity';
+import { Task } from '../set/entities/task.entity';
 import { SetService } from '../set/set.service';
 import { Status } from '../shared/enums/status.enum';
 import { User } from './../user/entities/user.entity';
@@ -30,6 +31,14 @@ export class ReportService {
         if (!includedStatus) {
             includedStatus = Object.values(ReportStatus);
         }
+        console.log(
+            await this.reportModel
+                .find({
+                    status: { $in: includedStatus }
+                })
+                .populate<{ set: Set }>('set', '-tasks')
+                .lean()
+        );
         return await this.reportModel
             .find({
                 status: { $in: includedStatus }
@@ -41,14 +50,20 @@ export class ReportService {
     async getOneReportById(id: ObjectId): Promise<ReportDocument> {
         const report = await this.reportModel
             .findById(id)
-            .populate<{ set: Set }>('set')
             .populate<{ createdBy: User }>('createdBy')
             .populate<{ reviewedBy: User }>('reviewedBy');
-        console.log(report);
 
         if (!report) {
             throw new NotFoundException();
         }
+
+        if (report.kind === ReportKind.SET_REPORT) {
+            report.populate<{ set: Set }>('set');
+        } else {
+            report.populate<{ task: Task }>('task');
+        }
+
+        console.log('my report', report);
 
         return report;
     }

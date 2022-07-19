@@ -39,7 +39,6 @@ export class ReportResponse {
     reviewerNote?: string;
 
     constructor(obj: Partial<ReportDocument>) {
-        console.log('transforming', obj);
         Object.assign(this, obj);
     }
 }
